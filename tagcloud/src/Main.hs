@@ -39,18 +39,80 @@ svgCloudGen w h dataset =
   "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n" ++ 
   "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n" ++
   (svgViewBox w h) ++
-  (concat (svgBubbleGen 0 0 dataset)) ++ "</svg>\n"
+  (concat (svgBubbleGen dataset)) ++ "</svg>\n"
 
 
 -- Gera a lista de círculos em formato SVG
-svgBubbleGen:: Float -> Float -> [Int] -> [String]
-svgBubbleGen _ _ []    = []
-svgBubbleGen x y (h:t) =
-  svgCircle ((dx, dy), r) (rToColor r) : svgBubbleGen (x+3) (y+3) t
+svgBubbleGen:: [Int] -> [String]
+svgBubbleGen []    = []
+svgBubbleGen dataset = sbgAux cl []
   where
-    dx    = paramX 1 x
-    dy    = paramY 1 y
-    (r:_) = radiusList (h:t)
+    rl = radiusList dataset
+    cl = circleList rl
+
+sbgAux :: [Circle] -> [Circle] -> [String]
+sbgAux (c1:t1) [] = sbgAux t1 [c]
+  where
+    p = fst c1
+    x = fst p
+    y = snd p
+    r = snd c1
+    c = (coord 0 0 (x,y), r)
+sbgAux [] (c2:t2) = svgCircleGen (sort (c2:t2))
+sbgAux (c1:t1) (c2:t2)
+  | flag == True  = sbgAux ([(coord 2 2 (x,y), r)] ++ t1) (c2:t2)
+  | otherwise     = sbgAux t1 (c1 : (c2:t2))
+  where
+    p = fst c1
+    x = fst p
+    y = snd p
+    r = snd c1
+    flag = intersect c1 (c2:t2)
+
+svgCircleGen :: [Circle] -> [String]
+svgCircleGen [] = []
+svgCircleGen (c:t) = svgCircle c (rToColor r) : svgCircleGen t
+  where r = snd c
+
+
+-- Ordena os círculos pelo raio (decrescente)
+insert :: Circle -> [Circle] -> [Circle]
+insert c1 [] = c1 : []
+insert c1 (c2:t)
+  | r1 > r2   = c1 : (c2:t)
+  | otherwise = c2 : insert c1 t
+  where
+    r1 = snd c1
+    r2 = snd c2
+
+sort :: [Circle] -> [Circle]
+sort []    = []
+sort (h:t) = insert h (sort t)
+
+
+-- Equações paramétricas da espiral
+paramX :: Float -> Float -> Float
+paramX a t = a*t*(cos t) + 320
+
+paramY :: Float -> Float -> Float
+paramY a t = a*t*(sin t) + 320
+
+
+-- Calcula coordenadas de um ponto
+coord :: Float -> Float -> Point -> Point
+coord a b (x,y) = (dx,dy)
+  where
+    dx = paramX 1 (x+a)
+    dy = paramY 1 (y+b)
+
+
+-- Transforma lista de raios em lista de círculos com posição inicial (0,0)
+circleGen :: Float -> Float -> Float -> Circle
+circleGen x y r = ((x, y), r)
+
+circleList :: [Float] -> [Circle]
+circleList []    = []
+circleList (r:t) = circleGen 0 0 r : circleList t
 
 
 -- Gera string representando um círculo em SVG
@@ -73,19 +135,21 @@ distance (x1,y1) (x2,y2) = sqrt ((x2-x1)^2 + (y2-y1)^2)
 
 
 -- Verifica intersecção de círculos
-intersect :: Circle -> Circle -> Bool
-intersect ((x1,y1),r1) ((x2,y2),r2)
-  | d >= r1 + r2 = False
+intersect :: Circle -> [Circle] -> Bool
+intersect _ [] = False
+intersect c (c2:t)
+  | d >= r1 + r2 = intersect c t
   | otherwise    = True
-  where d = distance (x1,y1) (x2,y2)
-
-
--- Equações paramétricas da espiral
-paramX :: Float -> Float -> Float
-paramX a t = a*t*(cos t) + 320
-
-paramY :: Float -> Float -> Float
-paramY a t = a*t*(sin t) + 320
+  where
+    p1 = fst c
+    x1 = fst p1
+    y1 = snd p1
+    r1 = snd c
+    p2 = fst c2
+    x2 = fst p2
+    y2 = snd p2
+    r2 = snd c2
+    d  = distance (x1,y1) (x2,y2)
 
 
 -- Transforma lista de frequências em lista de raios
