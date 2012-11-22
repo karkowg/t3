@@ -44,14 +44,13 @@ svgCloudGen w h dataset =
 
 -- Gera a lista de círculos em formato SVG
 svgBubbleGen:: Float -> Float -> [Int] -> [String]
-svgBubbleGen x y dataset = [
-  svgCircle ((paramX x, paramY y), (radiusList dataset !! 0)) (rToColor (radiusList dataset !! 0)),
-  svgCircle ((paramX (x+60), paramY (y+60)), (radiusList dataset !! 1)) (rToColor (radiusList dataset !! 1)),
-  svgCircle ((paramX (x+90), paramY (y+90)), (radiusList dataset !! 2)) (rToColor (radiusList dataset !! 2)),
-  svgCircle ((paramX (x+100), paramY (y+100)), (radiusList dataset !! 3)) (rToColor (radiusList dataset !! 3)),
-  svgCircle ((paramX (x+110), paramY (y+110)), (radiusList dataset !! 4)) (rToColor (radiusList dataset !! 4)),
-  svgCircle ((paramX (x+120), paramY (y+120)), (radiusList dataset !! 5)) (rToColor (radiusList dataset !! 5)),
-  svgCircle ((paramX (x+130), paramY (y+130)), (radiusList dataset !! 6)) (rToColor (radiusList dataset !! 6))]
+svgBubbleGen _ _ []    = []
+svgBubbleGen x y (h:t) =
+  svgCircle ((dx, dy), r) (rToColor r) : svgBubbleGen (x+3) (y+3) t
+  where
+    dx    = paramX x
+    dy    = paramY y
+    (r:_) = radiusList (h:t)
 
 
 -- Gera string representando um círculo em SVG
