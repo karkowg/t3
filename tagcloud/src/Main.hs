@@ -48,8 +48,8 @@ svgBubbleGen _ _ []    = []
 svgBubbleGen x y (h:t) =
   svgCircle ((dx, dy), r) (rToColor r) : svgBubbleGen (x+3) (y+3) t
   where
-    dx    = paramX x
-    dy    = paramY y
+    dx    = paramX 1 x
+    dy    = paramY 1 y
     (r:_) = radiusList (h:t)
 
 
@@ -69,22 +69,23 @@ svgViewBox w h =
 
 -- Calcula a distância entre dois pontos
 distance :: Point -> Point -> Float
-distance (x1,y1) (x2,y2) = sqrt (((x2-x1)^2) + ((y2-y1)^2))
+distance (x1,y1) (x2,y2) = sqrt ((x2-x1)^2 + (y2-y1)^2)
 
 
 -- Verifica intersecção de círculos
 intersect :: Circle -> Circle -> Bool
 intersect ((x1,y1),r1) ((x2,y2),r2)
-  | distance (x1,y1) (x2,y2) >= r1 + r2 = False
-  | otherwise                           = True
+  | d >= r1 + r2 = False
+  | otherwise    = True
+  where d = distance (x1,y1) (x2,y2)
 
 
 -- Equações paramétricas da espiral
-paramX :: Float -> Float
-paramX ra = 1*ra*(cos ra) + 320
+paramX :: Float -> Float -> Float
+paramX a t = a*t*(cos t) + 320
 
-paramY :: Float -> Float
-paramY ra = 1*ra*(sin ra) + 320
+paramY :: Float -> Float -> Float
+paramY a t = a*t*(sin t) + 320
 
 
 -- Transforma lista de frequências em lista de raios
