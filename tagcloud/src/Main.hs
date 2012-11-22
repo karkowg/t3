@@ -39,33 +39,22 @@ svgCloudGen w h dataset =
   "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n" ++ 
   "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n" ++
   (svgViewBox w h) ++
-  (concat (svgBubbleGen dataset)) ++ "</svg>\n"
+  (concat (svgBubbleGen 0 0 dataset)) ++ "</svg>\n"
 
 
--- Esta função deve gerar a lista de círculos em formato SVG
--- A implementação atual é apenas um teste que gera um círculo posicionado no meio da figura
--- TODO: Alterar essa função para usar os dados do dataset
-svgBubbleGen:: [Int] -> [String]
-svgBubbleGen dataset = [svgCircle ((paramX 0,paramY 0), 17) (rToColor 17),
-  svgCircle ((paramX 30,paramY 30), 13) (rToColor 13),
-  svgCircle ((paramX 35,paramY 35), 13) (rToColor 13),
-  svgCircle ((paramX 40,paramY 40), 13) (rToColor 13),
-  svgCircle ((paramX 45,paramY 45), 11) (rToColor 11),
-  svgCircle ((paramX 50,paramY 50), 11) (rToColor 11),
-  svgCircle ((paramX 55,paramY 55), 11) (rToColor 11),
-  svgCircle ((paramX 60,paramY 60), 7) (rToColor 7),
-  svgCircle ((paramX 62,paramY 62), 7) (rToColor 7),
-  svgCircle ((paramX 64,paramY 64), 7) (rToColor 7),
-  svgCircle ((paramX 65,paramY 65), 5) (rToColor 5),
-  svgCircle ((paramX 66,paramY 66), 5) (rToColor 5),
-  svgCircle ((paramX 67,paramY 67), 5) (rToColor 5),
-  svgCircle ((paramX 68,paramY 68), 3) (rToColor 3),
-  svgCircle ((paramX 69,paramY 69), 3) (rToColor 3),
-  svgCircle ((paramX 70,paramY 70), 3) (rToColor 3)]
+-- Gera a lista de círculos em formato SVG
+svgBubbleGen:: Float -> Float -> [Int] -> [String]
+svgBubbleGen x y dataset = [
+  svgCircle ((paramX x, paramY y), (radiusList dataset !! 0)) (rToColor (radiusList dataset !! 0)),
+  svgCircle ((paramX (x+60), paramY (y+60)), (radiusList dataset !! 1)) (rToColor (radiusList dataset !! 1)),
+  svgCircle ((paramX (x+90), paramY (y+90)), (radiusList dataset !! 2)) (rToColor (radiusList dataset !! 2)),
+  svgCircle ((paramX (x+100), paramY (y+100)), (radiusList dataset !! 3)) (rToColor (radiusList dataset !! 3)),
+  svgCircle ((paramX (x+110), paramY (y+110)), (radiusList dataset !! 4)) (rToColor (radiusList dataset !! 4)),
+  svgCircle ((paramX (x+120), paramY (y+120)), (radiusList dataset !! 5)) (rToColor (radiusList dataset !! 5)),
+  svgCircle ((paramX (x+130), paramY (y+130)), (radiusList dataset !! 6)) (rToColor (radiusList dataset !! 6))]
 
 
--- Gera string representando um círculo em SVG. A cor do círculo esta fixa. 
--- TODO: Alterar esta função para mostrar um círculo de uma cor fornecida como parâmetro.
+-- Gera string representando um círculo em SVG
 svgCircle :: Circle -> Color -> String
 svgCircle ((x,y),ra) (r,g,b) =
   printf "<circle cx=\"%f\" cy=\"%f\" r=\"%f\" fill=\"rgb(%d,%d,%d)\" />\n" x y ra r g b
@@ -98,6 +87,13 @@ paramX ra = 1*ra*(cos ra) + 320
 paramY :: Float -> Float
 paramY ra = 1*ra*(sin ra) + 320
 
+
+-- Transforma lista de frequências em lista de raios
+radiusList :: [Int] -> [Float]
+radiusList []    = []
+radiusList (h:t) = fToRadius h : radiusList t
+
+
 -- Tradução de intervalos (frequência -> raio)
 fToRadius :: Int -> Float
 fToRadius n
@@ -125,7 +121,6 @@ fToRadius n
 
 -- Tradução de intervalos (raio -> cor)
 rToColor :: Float -> Color
-rToColor 0  = (0,0,0)
 rToColor 1  = (105,0,0)
 rToColor 3  = (130,0,0)
 rToColor 5  = (155,0,0)
