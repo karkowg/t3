@@ -97,8 +97,10 @@ rcAux []    = []
 rcAux (c:t) = ((dx,dy),(r,e)) : rcAux t
   where
     ((x,y),(r,e)) = c
-    dx = x+180
-    dy = y+180
+    cx = fromIntegral imageWidth/2
+    cy = fromIntegral imageHeight/2
+    dx = x+cx
+    dy = y+cy
 
 resetCoord :: [Circle] -> [Circle]
 resetCoord circles = sort (rcAux circles)
@@ -111,8 +113,8 @@ insert c1 (c2:t)
   | r1 > r2   = c1 : (c2:t)
   | otherwise = c2 : insert c1 t
   where
-    r1 = snd c1
-    r2 = snd c2
+    (_,(r1,_)) = c1
+    (_,(r2,_)) = c2
 
 sort :: [Circle] -> [Circle]
 sort []    = []
